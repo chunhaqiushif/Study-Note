@@ -63,3 +63,15 @@ Node中的定时器相关函数主要有：
 - ```void unschedule(SELSCHEDULE selector);```可以指定具体函数停止调度。
 - ```void unscheduleAllSelectors(void);```可以停止调度。
 ----
+#### 3.6 cocos2d-x坐标系
+##### 3.6.1 UI坐标
+UI坐标原点在左上角，x轴为向右为正，y轴向下为正。
+Android和iOS等平台使用的视图、控件等都是遵守这个坐标系。然而Cocos2dx默认不是采用UI坐标，但有的时候也会用到UI坐标，例如在触控事件发生的时候，我们会获得一个触摸对象（Touch），触摸对象提供了很多获得位置信息的函数，如下面的代码：
+```
+Vec2 touchLocation2 = touch ->getLocationInView;
+```
+使用```getLocationInView()```函数获得触摸点坐标事实上就是UI坐标，它的坐标原点在左上角，而不是Cocos2d-x默认坐标，我们可以采用下面的语句进行转换：
+```
+Vec2 touchLocation2 = Director::getInstance() -> convertToGL(touchLocation);
+```
+通过上面的语句就可以将触摸点位置从UI位置转换为OpenGL坐标，OpenGL作弊就是Cocos2d-x默认坐标。
