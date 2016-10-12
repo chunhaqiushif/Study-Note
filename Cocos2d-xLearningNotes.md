@@ -113,3 +113,183 @@ delete name;
 ```
 const char* cstring = name->c_str();
 ```
+##### 4.1.2 使用cocos2d::__String
+cocos2d::__String是Cocos2d-x的一个通用字符串类，它的设计模仿了Objective-C的NNString类，这由于Cocos2d-x源自于Cocos2d-iphone，cocos2d::__String也是基于Unicode双字节编码。
+```
+__String类图：
+Ref ← __String
+```
+创建其主要静态create函数如下：
+```
+static __String* create(const std::string &str)
+static __String* createWithFormat(const char* format,...)
+```
+cocos2d::__String转换为const char*类型：
+```
+__String* name = __String::create("Hi, Tony");
+const char* cstring = name->getCString();
+```
+const char*转换为cocos2d::__String：
+```
+const char* cstring = "Hi tony";
+__String* ns = __String::createWithFormat("%s", cstring);
+```
+std::string转换为cocos2d::__String类型：
+```
+std::string string = "Hi,tony";
+__String* ns = __String::createWithFormat("%s", string.c_str());
+```
+cocos2d::__String转换为int类型：
+```
+int num = 123;
+__String* ns = __String::createWithFormat("%d", num);
+int num2 = ns->intValue();
+```
+#### 4.2 使用标签
+##### 4.2.1 使用Label类
+```
+Label类类图：
+Ref ← Node ← Label
+```
+创建Label类静态create函数如下：
+```
+static Label* createWithSystemFont( const std::string &text,//要显示的文字
+  const std::string &font,//系统字体名
+  float fontSize,//字体的大小
+  const SIze& dimensions = Size::ZERO,//在屏幕上占用的区域大小，可省略
+  TextHAlignment hAlignment = TextHAlignment::LEFT,//文字横向对齐方式，可省略
+  TextVAlignment vAlignment = TextVAlignment::TOP)//文字纵向对齐方式，可省略
+
+static Label* createWithTTF( const std::string &text,
+  const std::string &fontFile,//字体文件
+  float fontSize,
+  const Size &dimensions = Size::ZERO,
+ TextHAlignment hAlignment = TextHAlignment::LEFT,
+ TextVAlignment vAlignment = TextVAlignment::TOP
+ )
+
+static Label* createWithTTF( const TTFConfig &TTFConfig,
+  const std::string &text,
+  TextHAlignment alignment = TextHAlignment::LEFT,
+  int maxLineWidth = 0
+  )
+
+static Label* createWithBMFont( const std::string &bmfontFilePath,//位图字体文件
+  const std::string &text,
+  const TextHAlignment &alignment = TextHAlignment::LEFT,//可省略
+  int maxLineWidth = 0,//可省略
+  const Vec2 &imageOffset = Vec2::ZERO//可省略
+  )
+```
+其中createWithSystemFont是创建系统字体标签对象，createWithTTF是创建TTF字体标签对象，createWithBMFont是创建位图字体标签对象。
+#### 4.3 位图字体制作
+工具：
+1. Glyph Designer
+2. BMFont
+
+---
+### 第五章 Cocos2d-x中的数据结构
+---
+#### 5.1 Cocos2d-x中两大类——Ref和Value
+在Cocos2d-x中创造了两大类：Ref和Value，Cocos2d-x中除C++以外的几乎所有类都派生自它们。
+数据结构类所能容纳的数据分为：Ref和Value。
+##### 5.1.1 Cocos2d-x根类——Ref
+Ref是大部分Cocos2d-x对象的基类，我们常用的类Node、Director、Action、Event和SpriteFrame等。
+它们可以通过静态create函数创建对象，通过这种方式创建的对象不需要管理内存。类似：
+```
+SpriteFrame* frame = SpriteFrame::createWithTexture(tt2d, rect);
+//其中tt2d是Texture2D对象指针类型，rect是Rect类型。
+```
+##### 5.1.2 包装类 Value
+Value类可以将int、float、double、bool、unsigned char和char*等基本数据类型包装成类，也包装一些C++标准类，例如```std::string```、```std::vector<Value>```、```std::unordered_map<std::string, Value>```和```std::unordered_map<int, Value>```。
+#### 5.2 Ref列表数据结构
+##### 5.2.1 __Array数据结构
+__Array类在Cocos2d-x 2.x时期就是CCArray类。继承与Ref类，因此所能容纳的是Ref及其子类所创建的对象指针。
+创建__Array对象：
+```
+static __Array* create();//创建__Array
+static __Array* create(Ref* object, ...);//使用一系列Ref创建__Array
+static __Array* createWithObject(Ref* object);//使用一个Ref创建__Array
+static __Array* createWithCapacity(unsigned int capacity);//创建__Array，并设置容量
+static __Array* createWithArray(__Array* other__Array);//用一个已经存在的__Array创建另一个__Array
+static __Array* createWithContentsOfFile(const std::string &pFileName);//从属性列表文件创建__Array
+```
+添加元素
+```
+void addObject(Ref* object);//添加一个元素
+void addObjectFromArray(__Array* otherArray);//把一个__Array对象中所有元素添加到当前__Array对象中
+void insertObject(Ref* object, ssize_t index);//在指定位置插入元素，ssize_t是int类型别名
+```
+移除元素
+```
+void removeLastObject();//移除最后一个元素
+void removeObject(Ref* object);//移除某个元素
+void removeObjectAtIndex(ssize_t index);//移除一个指定位置的元素
+void removeObjectInArray(__Array* otherArray);//溢出某个数组__Array对象
+void removeAllObject();//移除所有元素
+void fastRemoveObject(Ref* object);//快速移除某个元素，把数组的最后一个元素（数值的最后一个元素是NULL）赋值给要删除的元素，不过这会改变原有元素的顺序
+void fastRemoveObjectAtIndex(ssize_t index);//快速溢出某个位置指定位置的元素，与fastRemoveObject函数类似。
+```
+替换和交换元素
+```
+void exchangeObject(Ref* object1, Ref* object2);//交换两个元素
+void exchangeObjectAtIndex(ssize_t index1, ssize_t index2);//交换两个指定位置元素
+void replaceObjectAtIndex(ssize_t uIndex, Ref* object);//用一个对象替代指定位置元素
+```
+其他操作函数
+```
+ssize_t count();//返回元素个数
+ssize_t capacity();//返回__Array的容量
+ssize_t indexOfObject(Ref* object);//返回指定Ref对象指针的位置
+Ref* objectAtIndex(ssize_t index);//返回指定位置的Ref对象指针
+Ref* lastObject();//返回最后一个元素
+Ref* ramdomObject;//返回随机元素
+bool containsObject(Ref* object);//返回某个元素是否存在于__Array数据结构中
+bool isEqualToArray(__Array* pOtherArray);//判断__Array对象是否相等
+void reverseObjects();//翻转__Array数据结构
+```
+##### 5.2.3 Vector<T>数据结构
+Vector<T>是Cocos2d-x 3.x自己的列表数据结构，因此他所能容纳的是Ref及子类的实例对象指针，其中的T是模板，表示能够放入到数据结构中的类型，在Coco2d-x 3.x中T表示Ref类。其内存管理是由编译器自动处理的，可以不用考虑内存释放。性能优于__Array类，推荐使用Vector<T>类。
+创建Vector对象
+```
+Vector();//默认的构造函数
+Vector(ssize_t capacity);//创建Vector对象，并设置容量
+Vector(const Vector<T>&other);//用一个已存在的Vector对象创建另一个Vector对象，其中&other是左值引用参数传递
+Vector(Vector<T>&&other);//用一个已存在的Vector对象创建另一个Vector对象，其中&&other是右值引用参数传递
+```
+添加元素
+```
+//向Vector对象中添加元素都必须是Ref对象指针类型
+void pushBack(T object);//添加一个元素，T表示Ref对象指针类型
+void pushBack(const Vector<T>&other);//把一个Vector对象中所有元素添加到当前Vector对象中。
+void insert(ssize_t index, T object);//在指定的位置插入元素，ssize_t是int类型别名
+```
+移除元素
+```
+void popBack();//
+void eraseObject(T object, bool removeAll = false);//移除某个元素
+iterator erase(iterator position);//指定位置移除对象，参数是迭代器，而返回值是下一个迭代器
+iterator erase(iterator first, iterator last);//指定移除对象范围（first~last），参数是迭代器，而返回值是下一个迭代器
+void clear();//移除所有元素
+```
+替换和交换元素
+```
+void swap(T object1, T object2);//交换两个元素
+void swap(ssize_t index1, ssize_t index2);//交换两个指定位置的元素
+void replace(ssize_t index, T object);//用一个对象替代指定位置元素
+```
+查找操作
+```
+iterator find(T object);//查找Vector数据结构中的对象，返回值迭代器
+T at(ssize_t index);//根据索引位置返回Vector数据结构中的元素
+T front();//返回第一个元素
+T back();//返回最后一个元素
+T getRamdomObject();//返回随机元素
+bool contains(T object);//返回某个元素是否存在数据结构中
+ssize_t getIndex(T object);//返回指定对象的位置
+```
+其他操作函数
+```
+ssize_t size();//返回元素个数
+ssize_t capacity();//返回Vector的容量
+```
