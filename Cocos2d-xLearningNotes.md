@@ -74,4 +74,20 @@ Vec2 touchLocation2 = touch ->getLocationInView;
 ```
 Vec2 touchLocation2 = Director::getInstance() -> convertToGL(touchLocation);
 ```
-通过上面的语句就可以将触摸点位置从UI位置转换为OpenGL坐标，OpenGL作弊就是Cocos2d-x默认坐标。
+通过上面的语句就可以将触摸点位置从UI位置转换为OpenGL坐标，OpenGL坐标就是Cocos2d-x默认坐标。
+
+##### 3.6.2 OpenGL坐标
+Cocos2d-x底层采用的是OpenGL渲染，因此默认坐标就是OpenGL坐标，只不过采用两维。如果不考虑z轴，OpenGL坐标的原点在左下角。
+
+##### 3.6.3 世界坐标和模型坐标
+由于OpenGL坐标又可以分为世界坐标和模型坐标，所以Cocos2d-x的坐标也有世界坐标和模型坐标。
+世界坐标和模型坐标互相转换：
+- ```Vec2 convertToNodeSpace(const Vec2& worldPoint);//将世界坐标转换为模型坐标```
+- ```Vec2 convertToNodeSpaceAR(const Vec2& worldPoint);//将世界坐标转换为模型坐标，AR表示相对于锚点```
+- ```Vec2 convertTouchToNodeSpace(Touch* touch);//将世界坐标中的触摸点转换为模型坐标```
+- ```Vec2 convertTouchToNodeSpaceAR(Touch* touch);//将世界坐标中触摸点转换为模型坐标，AR表示相对于锚点```
+- ```Vec2 convertToWorldSpace(const Vec2 & nodePoint);//将模型坐标转换为世界坐标```
+- ```Vec2 convertToWorldSpaceAR(const Vec2& nodePoint);//将模型坐标转换为世界坐标世界坐标，AR表示相对于锚点```
+----
+### 第四章 游戏中的文字
+---
