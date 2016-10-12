@@ -91,3 +91,25 @@ Cocos2d-x底层采用的是OpenGL渲染，因此默认坐标就是OpenGL坐标�
 ----
 ### 第四章 游戏中的文字
 ---
+#### 4.1 Cocos2d-x中的字符串
+##### 4.1.1 使用const char*和std::string
+std::string是一个类，具有面向对象的优点，而const char*没有。
+初始化std::string对象：
+```
+std::string name = "tony";
+std::string name = std::string("tony");
+```
+std::string转化为const char*：
+```
+const char* cstring = name.c_str();
+```
+使用std::string指针类型，但是要配合new关键字开辟空间，然后不使用时通过delete释放内存、
+```
+std::string* name = new std::string("tony");
+...
+delete name;
+```
+使用std::string指针对象时，可以通过下面的代码转化为const char*类型：
+```
+const char* cstring = name->c_str();
+```
