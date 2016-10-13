@@ -484,7 +484,8 @@ MenuItemSprite还有一些create函数，在这些函数中可以省略disabledS
 如果精灵是由图片构成的，我们可以使用MenuItemImage实现与精灵菜单同样的效果。
 MenuItemImage类的其中一个创造函数create如下：
 ```
-static MenuItemImage* create(const std::string &normalImage,//菜单项正常显示时的图片
+static MenuItemImage* create(const std::string &normalImage,
+//菜单项正常显示时的图片
   const std::string &selectedImage,//选择菜单项时的图片
   const std::string &disabledImage,//菜单项禁用时的图片
   const ccMenuCallback &callback//菜单操作的回调函数指针
