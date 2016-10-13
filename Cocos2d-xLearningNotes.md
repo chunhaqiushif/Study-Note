@@ -450,3 +450,67 @@ erase(const key_type &k);//根据键删除值
 ---
 ### 第六章 菜单
 ---
+#### 6.2 文本菜单
+文本菜单是菜单项，只能显示文本，文本菜单类包括MenuItemLabel、MenuItemFont和MenuItemAtlasFont。MenuItemLabel是个抽象类，具体使用的时候是使用MenuItemFont和MenuItemAtlasFont两个类。
+文本菜单类MenuItemAtlasFont中的一个创建函数create定义如下：
+```
+static MenuItemFont* create(const std::string &value,//要显示的文本
+  const ccMeunCallback &callback//菜单操作的回调函数指针
+  )
+```
+文本菜单类MenuItemAtlasFont是基于图片集的文本菜单项，其中一个创建函数create定义如下：
+```
+static MenuItemAtlasFont* create(const std::string &value,//要显示的文本
+  const std::string &charMapFile,//图片集文件
+  int itemWidth,//要截取的文字在图片中的宽度
+  int itemHeight,//要截取的文字在图片中的高度
+  char startCharMap,//开始字符
+  const ccMeunCallback &callback//菜单操作的回调函数指针
+  )
+```
+#### 6.3 精灵菜单和图片
+精灵菜单的菜单项是MenuItemSprite，图片菜单的菜单项类是MenuItemImage。由于MenuItemImage继承于MenuItemSprite，所以图片菜单也属于精灵菜单。
+精灵菜单项具有精灵的特点，我们可以让精灵动起来，具体使用时是吧一个精灵放置到菜单中作为菜单项。
+创建函数create定义：
+```
+static MenuItemSprite* create(Node* normalSprite,//菜单项正常显示时的精灵
+  Node* selectedSprite,//选择菜单项时的精灵
+  Node* disabledSprite,//菜单项禁用时的精灵
+  const ccMenuCallback &callback;//菜单操作的回调函数指针
+)
+```
+使用MenuItemSprite比较麻烦，在创建MenuItemSprite之前要先创建三种不同状态式的精灵（即normalSprite/selectedSprite/disabledSprite）。
+MenuItemSprite还有一些create函数，在这些函数中可以省略disabledSprite参数。
+如果精灵是由图片构成的，我们可以使用MenuItemImage实现与精灵菜单同样的效果。
+MenuItemImage类的其中一个创造函数create如下：
+```
+static MenuItemImage* create(const std::string &normalImage,//菜单项正常显示时的图片
+  const std::string &selectedImage,//选择菜单项时的图片
+  const std::string &disabledImage,//菜单项禁用时的图片
+  const ccMenuCallback &callback//菜单操作的回调函数指针
+  )
+```
+MenuItemImage还有一些create函数，在这些函数中可以省略disabledImage参数
+
+#### 6.4 开关操作
+开关菜单的菜单项类是MenuItemToggle，他是一种可以进行两种状态切换的菜单项。
+函数创建：
+```
+static MenuitemToggle* createWithCallback(
+  const ccMenuCallback &callback;//菜单操作的回调函数指针
+  MenuItem* item,//进行切换的菜单项
+  ...
+  )
+```
+从第二个参数开始都是MenuItem类的实例对象，他们是开关菜单显示的菜单项，它们可以是文本、图片和精灵类型的菜单项，但是最后不要忘记NULL结尾。
+简单形式的文本类型的开关菜单项：
+```
+auto toggleMenuItem = MenuItem = MenuitemToggle::createWithCallback(
+  CC_CALLBACK_1(HelloWorld::menuItem1Callback, this),
+  MenuItemFont::create("On"),
+  MenuItemFont::create("Off"),
+  NULL
+  );
+  Menu* mn = Menu::create(toggleMenuItem, NULL);
+  this->addChild(mn);
+```
