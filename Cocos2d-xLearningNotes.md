@@ -293,3 +293,160 @@ ssize_t getIndex(T object);//返回指定对象的位置
 ssize_t size();//返回元素个数
 ssize_t capacity();//返回Vector的容量
 ```
+##### 5.3.2 __Dictionary数据结构
+创建__Dictionary对象：
+```
+static __Dictionary* create();//创建__Dictionary
+static __Dictionary* createWithDictionary(__Dictionary* srcDict);//用一个已存在的__Dictionary来创建一个新的__Dictionary
+static __Dictionary* createWithContentsOfFile(const char* pFileName);//从属性列表文件创建__Dictionary
+```
+添加元素：
+(添加元素都必须是“键-值”对，“键”可以是字符串（std::string）类型或整数（signed int）类型，而“值”必须是Ref和其子类的对象指针类型。)
+```
+void setObject(Ref* pObject, const std::string& key);
+//插入一个“键-值”对，其中pObject是“值”，key是“键”。
+//如果第一次调用，__Dictionary的“键”类型是字符串型，之后就不能插入整形“键”。
+//如果已存在该“键”，则旧“键-值”对会被释放和移除，被新的替代。
+void setObject(Ref* pObject, intptr_t key);
+//插入一个“键-值”对，其中pObject是“值”，key是“键”，intptr_t类型是signed int类型的别名，为整型。
+//如果是第一次调用，__Dictionary的“键”类型是整形，之后就不能插入字符串型“键”。
+//如果已存在该“键”，则旧“键-值”对会被释放和移除，被新的替代。
+```
+移除元素：
+```
+void removeObjectForKey(const std::string &key);//通过指定键移除元素
+void removeObjectForKey(intptr_t key);//通过指定键移除元素
+void removeObjectForKeys(__Array* pKeyArray);//通过一个__Array中键集合移除元素
+void removeObjectForElement(DictElement* pElement);//通过指定元素来移除
+void removeAllObject();//移除所有元素
+```
+查找元素：
+```
+Ref* objectForKey(const std::string &key);//返回指定字符串类型“键”的“值”。
+Ref* objectForKey(intptr_t key);//返回指定整形“键”的“值”
+const __String* valueForKey(const std::string &key);
+//返回指定字符串类型“键”的“值”，返回值是__String指针类型。
+//这里假定“值”是__String指针型，如果不是或未找到，则返回空串。
+const __String* valueForKey(intptr_t key);
+//返回指定整形“键”的“值”，返回值是__String指针类型。
+//这里假定“值”是__String指针型，如果不是或未找到，则返回空串。
+```
+其他操作函数
+```
+__Array* allKeys();//返回一个包含所有“键”的“值”的__Array数据结构
+unsigned int count();//返回元素个数
+bool writeToFile(const char* fullPath);
+//把一个__Dictionary写到一个属性列表文件中，写入的“值”要求是字符串型
+```
+遍历_Dictionary数据结构：
+Cocos2d-x提供了一个宏：```CCDICT_FOREACH```，用来遍历__Dictionary数据结构。
+
+##### 5.3.3 Map<K, V>数据结构
+Map<K, V>是Cocos2d-x 3.x推出的字典数据结构，它也能容纳Ref类型。内存管理是由编译器自动处理的，可以不用考虑内存释放问题。性能优于__Dictionary类。
+创建Map<K, V>对象：
+```
+Map();//默认构造函数
+Map(ssize_t capacity);//创建Map，并设置容量
+Map(const Map<K, T>&other);//用一个已存在的Map创建另一个Map
+Map(Map<K, V>&&other);//用一个已存在的Map创建另一个Map
+```
+添加元素：
+```
+void insert(const K &key, V object);
+//在Map中添加一个新元素，V必须是Ref以及子类指针类型。
+```
+移除元素：
+```
+iterator erase(const_iterator position);//指定位置移除对象，参数是迭代器，而返回值是下一个迭代器
+size_t erase(const std::vector<K>&keys);//通过给定键集合移除多个元素
+void clear();//移除所有元素
+```
+查找元素：
+```
+const V at(const K &key) const;//通过“键”返回“值”
+V at(const K &key);//返回指定整形“键”的“值”
+const_iterator find(const K &key) const;//查找Map数据结构中的对象，返回值迭代器
+iterator find(const K &key);//查找Map数据结构中的对象，返回值迭代器
+```
+其他操作函数：
+```
+std::vector<K> keys();//返回所有的“键”
+std::vector<K> keys(V object);//返回与对象匹配的所有“键”
+ssize_t size();//返回元素个数
+```
+#### 5.4 Value列表数据结构——ValueVector
+##### 5.4.1 ValueVector常用API
+ValueVector的API就是C++标准数据结构类std::vector的API。
+创建ValueVector对象：
+```
+ValueVector ret;//默认构造函数
+
+//如果需要在创建时进行初始化，可以采用Lambda表达式创建ValueVector对象
+auto createValueVector = [&](){
+  ValueVector ret;
+  ret.push_back(v1);
+  ret.push_back(v2);
+  ret.push_back(v3);
+  return ret;
+};
+ValueVector vv = createValueVector();
+```
+访问元素：
+```
+Value &at(size_type n);//返回n位置的元素
+Value &front();//返回第一个元素
+Value &back();//返回最后一个元素
+```
+修改元素：
+```
+push_back(const ValueVector &val);//添加一个元素，val参数必须是ValueVector类型
+pop_back();//删除最后一个元素
+```
+#### 5.5 Value字典数据结构——ValueMap和ValueMapIntKey
+```
+//定义
+typedef std::unordered_map<std::string, Value> ValueMap;
+typedef std::unordered_map<int, Value> ValueMapIntKey;
+```
+从定义上看，二者只能容纳Value类型的C++标准数据结构类std::unordered_map，ValueMap的“键”是std::string类型，ValueMapIntKey的“键”是int类型。与ValueVector一样，二者内存管理不采用引用计数，在使用时也不需要关心内存的释放问题。
+##### 5.5.1 ValueMap和ValueMapIntKey常用API
+创建ValueMap和ValueMapIntKey对象：
+```
+ValueMap ret;//默认构造函数
+
+//如果需要在创建时进行初始化，可以采用Lambda表达式创建ValueMap和ValueMapIntKey对象
+auto createValueMap = [&](){
+  ValueMap ret;
+  ret["aaa"] = v1;
+  ret["aaa"] = v1;
+  ret["aaa"] = v1;
+  return ret;
+}
+ValueVector vm = createValueMap();
+
+auto createValueMapIntKey = [&](){
+  ValueMapIntKey ret;
+  ret["aaa"] = v1;
+  ret["aaa"] = v1;
+  ret["aaa"] = v1;
+  return ret;
+}
+ValueVector vmi = createValueMapIntKey();
+
+//其中aaa是键，v1是值，以此类推
+```
+访问元素：
+```
+ValueMap ret;
+ret.at("Mars") = Value(3000);//采用at函数访问
+ret["Saturn"] = Value(6000);//采用下标访问
+ret["Jupiter"] = Value(7000);//采用下标访问
+```
+修改元素：
+```
+insert(std::pair<std::string, Value>);//添加键值对
+erase(const key_type &k);//根据键删除值
+```
+---
+### 第六章 菜单
+---
