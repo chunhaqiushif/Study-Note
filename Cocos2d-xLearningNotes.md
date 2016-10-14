@@ -595,3 +595,113 @@ auto mountain1 = SpriteFrameCache = Sprite::createWithSpriteFrameName(
 ---
 ### 第八章 场景与层
 ---
+#### 8.1 场景与层的关系
+节点的层级结构中我们能够了解到场景（Scene）与层（Layer）的关系为：一个场景有n个层对应，而且层的个数至少要为1，不能为0。
+编程时往往不需要子类化（编写子类）场景，而是子类化层。虽然场景和层是1：n的关系，但是通过模板生成的工程默认情况下都是1：1关系。
+#### 8.2 场景切换
+##### 8.2.1 场景切换相关函数
+场景切换是通过导演类Director实现的，其中的相关函数如下：
+```
+void runWithScene(Scene* scene);
+//该函数可以运行场景。只能在启动第一个场景时调用该函数，
+//如果已经有一个场景运行情况下则不能调用该函数。
+void replaceScene(Scene* scene);
+//切换到下一个场景。用一个新的场景替换当前场景，当前场景被终端释放
+void pushScene(Scene* scene);
+//切换到下一个场景。将当前场景挂起放入到场景堆栈中，然后再切换到下一个场景中。
+void popScene(Scene* scene);
+//与pushScene配合使用，可以回到上一个场景。
+void popToRootScene();
+//与pushScene配合使用，可以回到根场景。
+```
+需要注意replaceScene和pushScene使用的区别。replaceScene会释放和销毁场景，如果需要保持原来场景的状态，replaceScene函数不适合。pushScene并不会释放和销毁场景，原来场景的状态可以保持，但是游戏中也不能出现太多的场景对象运行。
+使用replaceScene代码如下：
+```
+auto sc = Setting::createScene();
+DIrector::getInstance()->replaceScene(sc);
+//其中的Setting是下一个要切换的场景。
+```
+使用pushScene代码如下：
+```
+auto sc = Setting::createScene();
+Director::getInstance()->pushScene(sc);
+```
+从Setting场景回到上一个场景使用代码如下：
+```
+Director::getInstance()->popScene();
+```
+##### 8.2.2 场景过渡动画
+场景切换时可以添加过渡动画，场景过渡动画是由TransitionScene类和它的子类展示的。
+TransitionScene类的直接子类有13个，而且有些子类还有子类，全部的过渡动画类30多个。
+过渡动画类的使用方式都是类似如下：
+```
+auto sc = Setting::createScene();
+auto reScene = TransitionJumpZoom::create(1.0f, sc);
+Director::getInstance()->pushScene(reScene);
+```
+10个有代表性的过渡动画：
+- TransitionFadeTR：网格过渡动画，从左下到右上
+- TransitionJumpZoom：跳动的过渡动画
+- TransitionCrossFade：交叉渐变过渡动画
+- TransitionMoveInL：从左边推入覆盖的过渡动画
+- TransitionShrinkGrow：放缩交替的过渡动画
+- TransitionRotoZoom：类似照相机镜头旋转放缩交替的过渡动画
+- TransitionSlideInL：从左侧推入的过渡动画
+- TransitionSplitCols：按列分割界面的过渡动画
+- TransitionSplitRows：按行分割界面的过渡动画
+- TransitionTurnOffTiles：生成随机瓦片方格的过渡动画
+
+#### 8.3 场景的生命周期
+一般情况下，一个场景只需要一个层。层需要子类化，编写自己层类。由于这些原因场景的生命周期就通过层的生命周期反映出来，通过重写层的生命周期函数，可以处理场景不同生命周期阶段的事件，如我们可以在层的进入函数（onEnter）中做一些初始化处理，而在层退出函数（onExit）中释放一些资源。
+##### 8.3.1 生命周期函数
+层（Layer）的生命周期函数如下：
+```
+bool init();//初始化层调用
+void onEnter();//进入层时调用
+void onEnterTransitionDidFinish();//进入层而且过渡动画结束时调用
+void onExit();//退出层时调用
+void onExitTransitionDidStart();//退出层而且开始过渡动画时调用
+void clearup();//层对象被清除时调用
+```
+> Tips_1：层（Layer）继承于节点（Node），这些生命周期函数根本上是从Node继承而来。事实上所有Node对象（包括：场景、层、精灵等）都有这些函数，只要是子类化这些类都可以重写这些函数，来处理这些对象的不同生命周期阶段事件。
+
+>Tips_2：在重写生命周期函数中，第一行代码应该是调用父类的函数，例如```HelloWorld::onEnter(){...}```中第一行应该是```Layer::onEnter();```函数，如果不调用父类的函数可能会导致层中动画、动作或计划无法执行。
+
+如果HelloWorld是第一个场景，当启动HelloWorld场景的时候，它的调用顺序如下：
+```
+HelloWorld::init函数->HelloWorld::onEnter函数->HelloWorld::onEnterTransitionDidFinish函数
+```
+##### 8.3.2 多场景切换生命周期
+在多个场景切换时，场景的生命周期会更加复杂。
+多个场景切换时分为几种情况：
+1. 使用pushScene函数实现从HelloWorld场景进入Setting场景。
+```
+//情况1调用顺序
+1. Setting::init函数
+2. HelloWorld::onExitTransitionDidStart函数
+3. Setting::onEnter函数
+4. HelloWorld::onExit函数
+5. Setting::onEnterTransitionDidFinish函数
+```
+2. 使用replaceScene函数实现从HelloWorld场景进入Setting场景。
+```
+//情况2调用顺序
+1. Setting::init函数
+2. HelloWorld::onExitTransitionDidStart函数
+3. Setting::onEnter函数
+4. HelloWorld::onExit函数
+5. Setting::onEnterTransitionDidFinish函数
+6. HelloWorld::cleanup函数
+```
+3. 在1.的情况下使用popScene函数实现从Setting场景回到HelloWorld场景。
+```
+1. Setting::onExitTransitionDidStart函数
+2. Setting::onExit函数
+3. Setting::cleanup函数
+4. HelloWorld::onEnter函数
+5. HelloWorld::onEnterTransitionDidFinish函数
+```
+---
+### 第九章 动作和动画
+---
+#### 9.1 基本动作
