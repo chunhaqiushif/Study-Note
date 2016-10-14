@@ -675,6 +675,7 @@ HelloWorld::init函数->HelloWorld::onEnter函数->HelloWorld::onEnterTransition
 在多个场景切换时，场景的生命周期会更加复杂。
 多个场景切换时分为几种情况：
 1. 使用pushScene函数实现从HelloWorld场景进入Setting场景。
+
 ```
 //情况1调用顺序
 1. Setting::init函数
@@ -684,6 +685,7 @@ HelloWorld::init函数->HelloWorld::onEnter函数->HelloWorld::onEnterTransition
 5. Setting::onEnterTransitionDidFinish函数
 ```
 2. 使用replaceScene函数实现从HelloWorld场景进入Setting场景。
+
 ```
 //情况2调用顺序
 1. Setting::init函数
@@ -694,7 +696,9 @@ HelloWorld::init函数->HelloWorld::onEnter函数->HelloWorld::onEnterTransition
 6. HelloWorld::cleanup函数
 ```
 3. 在1.的情况下使用popScene函数实现从Setting场景回到HelloWorld场景。
+
 ```
+//情况3调用情况
 1. Setting::onExitTransitionDidStart函数
 2. Setting::onExit函数
 3. Setting::cleanup函数
