@@ -515,3 +515,83 @@ auto toggleMenuItem = MenuItem = MenuitemToggle::createWithCallback(
   Menu* mn = Menu::create(toggleMenuItem, NULL);
   this->addChild(mn);
 ```
+---
+### 第七章 精灵
+---
+#### 7.1 Sprite精灵类
+##### 7.1.1 创建Sprite精灵对象
+创建精灵对象：
+```
+static Sprite* create();//创建一个精灵对象，纹理等属性需要在创建后设置
+static Sprite* create(const std::string &filename);//指定图片创建精灵
+static Sprite* create(const std::string &filename, const Rect &rect);
+//指定图片和裁剪的矩形区域来创建精灵。
+static Sprite* createWithTexture(Texture2D* texture);//指定纹理创建精灵
+static Sprite* createWithTexture(Texture2D* texture,
+  const Rect &rect,
+  bool rotated = false);
+//指定纹理和裁剪的矩形区域来创建精灵，第三个参数为是否旋转纹理，默认不旋转
+static Sprite* createWithSpriteFrame(SpriteFrame* pSpriteFrame);
+//通过一个精灵帧对象创建另一个精灵对象
+static Sprite* createWithSpriteFrame(const std::string &spriteFrameName);
+//通过指定帧缓存精灵帧名创建精灵对象
+```
+#### 7.2 精灵的性能优化
+##### 7.2.1 使用纹理图集
+纹理图集（Texture Atlas）也称作精灵表（Sprite Sheet），他是把许多小的精灵图片集合到一张大图里面。
+使用纹理图集（或精灵表）的优点：
+- 减少文件读取次数，读取一张图片比读取一堆小文件要快。
+- 减少OpenGl ES绘制调用并且加速渲染。
+- 减少内存消耗。OpenGL ES 1.1仅仅能够使用2的n次幂大小的图片（即宽度或者高度是2/4/6/8/64...）。如果采用小图片OpenGL ES 1.1会分配给每个图片2的n次幂大小的空间。即使这张图片达不到这样的宽度和高度也会分配大于此图片的2的n次幂大小的空间。那么运用这种图片集的方式将会减少内存碎片。虽然在Cocos2d-x 2.0后使用了OpenGL ES 2.0后不会再分配2的几次幂的内存块了，但是减少读取次数和绘制的优势仍然存在。
+- Cocos2d-x全面支持Zwoptex和TexturePacker，所以创建和使用纹理图集是很容易的。纹理图集文件```.plist```。
+使用精灵表文件最简单的方式是使用Sprite的```create(const std::string &filename, const Rect &rect)```函数。
+
+使用create：
+```
+auto mountain1 = Sprite::create("SpriteSheel.png", Rect(1, 1251, 934, 388));
+mountain1->setAnchorPoint(Vec2::ZERO);
+mountain1->setPosition(Vec2(-200, 80));
+mountain1->addChild(mountain1, 0);
+```
+创建纹理Texture2D对象，也可以使用精灵表文件：
+```
+Texture2D* cache  = Director::getInstance()->getTextureCache()->
+  addImage("SpirteShell.png");
+auto hero1= Sprite::create();
+hero1->setTexture(cache);
+hero1->setTextureRect(Rect(1, 204, 393, 327));
+hero1->setPosition(Vec2(800, 200));
+this->addChild(hero1, 0);
+```
+##### 7.2.2 使用精灵帧缓存
+精灵帧缓存是缓存的一种，缓存有如下几种：
+- 纹理缓存（）：使用纹理缓存可以创建纹理对象。
+- 精灵帧缓存（）：能够从精灵表中创建精灵帧缓存，然后再从帧缓存中获得精灵对象，反复使用精灵对象时，使用精灵帧缓存可以节省内存消耗。
+- 动画缓存（）：动画缓存主要用于精灵动画，精灵动画中的每一帧是从动画缓存中获取的。
+
+要使用精灵帧缓存，涉及的类有```SpriteFrame```和```SpriteFrameCache```。
+使用SpriteFrameCache创建精灵对象的主要代码如下：
+```
+SpriteFrameCache::getInstance()->addSpriteFramesWithFile("SpriteSheel.plist");
+auto mountain1 = SpriteFrameCache = Sprite::createWithSpriteFrameName(
+  "mountain1.png");
+```
+
+#### 7.3 纹理图集制作
+纹理像素的格式：
+- RGBA8888：32位色，他是默认的像素格式，每个通道8位（比特），每个像素4个字节。
+- BGRA8888：32位色，每个通道8位（比特），每个像素4个字节。
+- RGBA4444：16位色，每个通道4位（比特），每个像素2个字节。
+- RGB888：24位色，没有Alpha通道，所以没有透明度。每个通道8位（比特），每个像素3个字节。
+- RGB565：16位色，没有Alpha通道，所以没有透明度。R和B通道是各5位，G通道是6.
+- RGB5A1（或RGBA5551）：16位色，每个通道各4位，Alpha通道只用1位表示。
+- PVRTC4：4位PVR压缩纹理格式，PVR格式是专门为iOS设备上面的PowerVR图形芯片而设计的。他们在iOS设备上非常好用，因为可以直接加载到显卡上面，而不需要经过中间的计算转化。
+- PVRTC4A：具有Alpha通道的，4位PVR压缩纹理格式。
+- PVRTC2：2位PVR压缩纹理格式。
+- PVRTC2A：具有Alpha通道的，2位的PVR压缩纹理格式。
+
+防抖效果：（Texture->Dithering）
+可以防止“带状伪影”现象。
+---
+### 第八章 场景与层
+---
