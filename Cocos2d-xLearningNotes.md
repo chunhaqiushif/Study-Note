@@ -676,36 +676,55 @@ HelloWorld::init函数->HelloWorld::onEnter函数->HelloWorld::onEnterTransition
 多个场景切换时分为几种情况：
 1. 使用pushScene函数实现从HelloWorld场景进入Setting场景。
 
-```
-//情况1调用顺序
-1. Setting::init函数
-2. HelloWorld::onExitTransitionDidStart函数
-3. Setting::onEnter函数
-4. HelloWorld::onExit函数
-5. Setting::onEnterTransitionDidFinish函数
-```
+  ```
+  //情况1调用顺序
+  1. Setting::init函数
+  2. HelloWorld::onExitTransitionDidStart函数
+  3. Setting::onEnter函数
+  4. HelloWorld::onExit函数
+  5. Setting::onEnterTransitionDidFinish函数
+  ```
 2. 使用replaceScene函数实现从HelloWorld场景进入Setting场景。
 
-```
-//情况2调用顺序
-1. Setting::init函数
-2. HelloWorld::onExitTransitionDidStart函数
-3. Setting::onEnter函数
-4. HelloWorld::onExit函数
-5. Setting::onEnterTransitionDidFinish函数
-6. HelloWorld::cleanup函数
-```
+  ```
+  //情况2调用顺序
+  1. Setting::init函数
+  2. HelloWorld::onExitTransitionDidStart函数
+  3. Setting::onEnter函数
+  4. HelloWorld::onExit函数
+  5. Setting::onEnterTransitionDidFinish函数
+  6. HelloWorld::cleanup函数
+  ```
 3. 在1.的情况下使用popScene函数实现从Setting场景回到HelloWorld场景。
 
-```
-//情况3调用情况
-1. Setting::onExitTransitionDidStart函数
-2. Setting::onExit函数
-3. Setting::cleanup函数
-4. HelloWorld::onEnter函数
-5. HelloWorld::onEnterTransitionDidFinish函数
-```
+  ```
+  //情况3调用情况
+  1. Setting::onExitTransitionDidStart函数
+  2. Setting::onExit函数
+  3. Setting::cleanup函数
+  4. HelloWorld::onEnter函数
+  5. HelloWorld::onEnterTransitionDidFinish函数
+  ```
 ---
 ### 第九章 动作和动画
 ---
 #### 9.1 基本动作
+动作（Action）包括了基本动作和基本动作的组合；基本动作包括缩放、移动、旋转等动作，而且这些动作变化的速度也可以设定。
+Node类有关于动作的函数如下：
+```
+Action* runAction(Action* action);//运行指定动作，返回值仍然是一个动作对象
+void stopAction(Action* action);//停止所有动作
+void stopActionByTag(int tag);//通过指定标签停止动作
+void stopAllActions();//停止所有动作
+```
+##### 9.1.1 瞬时动作
+瞬时动作就是不等待，马上执行的动作，瞬时动作的基类是ActionInstant。
+
+##### 9.1.2 间隔动作
+间隔动作执行需要一定的时间，我们可以设置duration属性来设置动作的执行时间。
+
+##### 9.1.3 组合动作
+组合动作包括以下几类：顺序、并列、有限次数重复、无限次数重复、反动作和动画。
+
+##### 9.1.4 动作速度控制
+通过ActionEase及其子类和Speed类，我们可以使精灵以非匀速或非线性速度运动。
