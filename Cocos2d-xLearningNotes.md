@@ -852,3 +852,175 @@ void HelloWorld::onEnter()
   eventDispatcher->addEventListenerWithFixedPriority(listener, this);
 }
 ```
+
+##### 10.1.6 鼠标事件
+鼠标事件是在Cocos2d-x 3.0之后添加的，可以在不同的平台上使用，丰富游戏用户的体验。当然也必须注意设备的支持。
+鼠标事件监听器是EventListenerMouse。
+EventListenerMouse中的鼠标事件响应属性：
+```
+std::function<void(Event* event)> onMouseDown;
+//当鼠标键按下时回调该属性所指定函数
+std::function<void(Event* event)> onMouseMove;
+//当鼠标键移动时回调该属性所指定函数
+std::function<void(Event* event)> onMouseScroll;
+//当鼠标滚轮滚动时回调该属性所指定函数
+std::function<void(Event* event)> onMouseUp;
+//当鼠标键抬起时回调该属性所指定函数
+```
+可以使用Lambda表达式实现键盘事件处理。
+
+#### 10.2 在层中进行事件处理
+层是节点的派生类。我们可以在层中响应时间处理。但是层是一个非常特殊的节点，场景中的主要工作都是在层中完成的，因此Cocos2d-x中为Layer定义了一些与事件相关的函数。
+Layer中单点触摸事件相关的函数：
+```
+bool onTouchBegin(Touch* touch, Event* event);
+void onTouchCancelled(Touch* touch, Event* event);
+void onTouchEnded(Touch* touch, Event* event);
+void onTouchMoved(Touch* touch, Event event);
+```
+Layer中多点触摸事件相关函数：
+```
+void onTouchesBegin(const std::vector<Touch*> &touches, Event* event);
+void onTouchesCancelled(const std::vector<Touch*> &touches, Event* event);
+void onTouchesEnded(const std::vector<Touch*> &touches, Event* event);
+void onTouchesMoved(const std::vector<Touch*> &touches, Event* event);
+```
+Layer中键盘事件相关的函数：
+```
+void onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event);
+void onKeyReleased(EventKeyboard::keyCode keyCode, Event* event);
+```
+Layer中加速度事件相关的函数：
+```
+void onAcceleration(Acceleration* acc, Event* event);
+```
+
+##### 10.2.1 触摸事件
+层中的触摸事件使用起来比较简单，由于事件监听的对象是层，而不是层中的精灵等对象，当判断是否点击了哪个精灵对象时比较麻烦，我们需要使用Rect的containsPoint函数逐一判断每个精灵对象。
+在层中的触摸事件的一般流程开发是，首先在层的h文件中定义要重写的事件相关函数，然后在cpp文件中实现。层中的事件处理比较简单，不需要注册事件监听器，不需要指定它的事件响应优先级别。这种优点也是它的缺点，在处理多个精灵的触摸事件时，就有些力不从心。
+
+---
+### 第十一章 Audio引擎
+---
+#### 11.1 Cocos2d-x中音频文件
+##### 11.1.1 音频文件介绍
+音频多媒体文件主要是存放音频数据信息，音频文件在录制的过程中把信号通过音频编码，变成音频数字信号保存到某种格式文件中。在播放过程中再对音频文件解码，解码出的信号通过扬声器等设备就可以转成音波。音频文件在编码的过程中数据量很大，所以有的文件格式对数据进行了压缩，因此音频文件可以分为：
+- 无损格式是非压缩数据格式，文件很大，一般不适合移动设备。例如WAV、AU、APE等文件是此格式。
+- 有损格式对数据进行了压缩，压缩后丢掉了一些数据。例如，MP3、WMA等文件是此格式。
+
+
+1. WAV文件
+  WAV文件是目前最流行的无损压缩格式。WAV文件的格式灵活，可以存储多种类型的音频数据。由于文件较大不适合存储容量小的移动设备。
+2. MP3文件
+  MP3是一种有损压缩格式，它尽可能的去掉人耳无法感觉到的部分和不敏感的部分。MP3是利用MPEG Audio Layer 3的技术，将数据以1:10甚至1:12的压缩率，压缩成容量较小的文件。由于这么高的压缩比率非常适合于存储容量小的移动设备
+3. WMA文件
+  WMA格式是微软发布的文件格式，也是有损压缩格式。他与MP3格式不分伯仲。在低比特率渲染情况下，WMA格式显示出比MP3更多的优点，压缩比MP3更高，音质更好。但是，在高比特率渲染情况下，MP3还是占有优势。
+4. CAFF文件
+  CAFF文件是苹果开发的专门用于Mac OS X和iOS系统无损压缩音频格式。它被设计来替换WAV格式。
+5. AIFF文件
+  AIFF文件是苹果开发的专业音频文件格式。AIFF的压缩格式是AIFF-C（或AIFC），将数据以4:1压缩率进行压缩，专门应用于Mac OS X和iOS系统。
+6. MID文件
+  MID文件也叫MIDI格式，是一种专业音频文件格式，允许数字合成器和其他设备交换数据。MID文件主要用于原始乐器作品、流行歌曲的业余表演、游戏音轨以及电子贺卡等。
+7. Ogg文件
+  Ogg文件全程OGGVoid，是一种新的音频压缩格式，类似于MP3等格式。Ogg是完全免费、开放且没有专利限制的。Ogg文件格式可以不断地进行大小和音质的改良，而不影响旧有的编码器或播放器。
+
+##### 11.1.2 Cocos2d-x跨平台音频支持
+Cocos2d-x与Cocos2d-iphone不同，他是为跨平台而设计的游戏引擎，因此也要考虑对于音频跨平台的支持。Cocos2d对于背景音乐与音效播放在不同平台支持的格式是不同的。
+Cocos2s-x对于背景音乐播放各个平台格式支持如下：
+- Android平台支持与android. media. MediaPlayer所支持的格式相同，android. media. MediaPlayer是Android多媒体播放类。
+- iOS平台支持推荐使用MP3和CAFF格式。
+- Windows平台支持MIDI、WAV、MP3格式。
+Cocos2d-x对于音效播放各个平台支持如下：
+- Android平台支持Ogg和WAV文件，但最好是Ogg文件；
+- iOS平台支持使用CAFF格式；
+- Windows平台支持MIDI和WAV文件。
+
+#### 11.2 使用Audio引擎
+Cocos2d-x提供了一个Audio引擎，Audio引擎可以独立于Cocos2d-x单独使用，Audio引擎本质上封装了OpenAL音频处理库。
+OpenAL是自由软件界的跨平台音频处理库。它用于设计多通道三维位置音效，其API风格模仿自OpenGL。
+具体使用的API是SimpleAudioEngine。SimpleAudioEngine有几个常用的函数：
+```
+void preloadBackgroundMusic(const char* pszFilePath);
+//预处理背景音乐文件
+void playBackgroundMusic(const char* pszFilePath, boolbLoop = false);
+//播放背景音乐，参数bLoop控制是否循环播放，默认情况下为false
+void stopBackgroundMusic();//停止播放背景音乐
+void pauseBackgroundMusic();//暂停播放背景音乐
+void resumeBackgroundMusic();//继续播放背景音乐
+bool isBackgroundMusicPlaying();//判断背景音乐是否在播放
+unsigned intplayEffect(const char* pszFilePath);//播放音效
+void pauseEffect(unsigned int nSoundId);
+//暂停播放音效，参数nSoundId是playEffect函数返回的ID
+void pauseAllEffects();//暂停所有播放音效
+void resumeEffect(unsigned int nSoundId);
+//继续播放音效，参数nSoundId是playEffect函数返回的ID
+void resumeAllEffects();//继续播放所有音效
+void stopEffect(unsigned int nSoundId);
+//停止播放音效，参数nSoundId是playEffect函数返回的ID
+void stopAllEffects();//停止播放所有音效
+void preloadEffect(const char* pszFilePath);
+//预处理音效音频文件，将压缩格式的文件进行解压处理，如MP3解压为WAV
+```
+##### 11.2.1 音频文件的预处理
+无论是播放背景音乐还是音效，在播放之前进行预处理是有必要的，这个过程是对音频文件进行解压等处理，预处理只需要在整个游戏运行过程中处理一次就可以了。如果不进行预处理，则会发现在第一次播放这个音频文件时觉得很卡，用户体验不好。
+预处理有两个相关参数：preloadBackgroundMusic和preloadEffect。
+下面代码是预处理背景音乐和音频：
+```
+//初始化背景音乐
+SimpleAudioEngine::getInstance()->preloadBackgroundMusic("sound/Jazz.mp3");
+//初始化音效
+SimpleAudioEngine::getInstance()->preloadEffect("sound/Blip.wav");
+```
+这些预处理过程代码最好放置到AppDelegate文件```applicationDidFinishLaunching()```函数中。如果放置到任何一个场景层中，当进入到这个层时会比较卡。而```applicationDidFinishLaunching()```函数是游戏启动时回调。在游戏启动时，一般会有一个延迟展示，这段时间是初始化的最佳时期。
+##### 11.2.2 播放背景音乐
+背景音乐的播放与停止实例代码如下：
+```
+SimpleAudioEngine::getInstance()->playBackgroundMusic("sound/Jazz.mp3", true);
+SimpleAudioEngine::getInstance()->stopBackgroundMusic("sound/Jazz.mp3");
+```
+关于播放背景音乐，理论上可以将播放代码如```SimpleAudioEngine::getInstance()->playBackgroundMusic("sound/Jazz.mp3", true);```放置到三个位置：
+1. 放置到init函数中：
+  如果前面场景中没有调用背景音乐停止语句，就可以正常播放背景音乐；但是如果前面场景层onExit函数有调用背景音乐停止语句，那么会出现背景音乐播放几秒后停止。
+  参考多场景切换生命周期：
+  ```
+  Setting::init()函数 -> HelloWorld::onExitTransitionDidStart()函数 ->
+  Setting::onEnter()函数 -> HelloWorld::onExit()函数 ->
+  Setting::onEnterTransitionDidFinish()函数
+  ```
+  ```HelloWorld::onExit```调用是在```Setting::init```之后，这样我们在```Setting::init```中开始播放背景音乐后，过一会调用```HelloWorld::onExit```时就会停止背景音乐播放。
+2. 放置到onEnter函数中：
+  同1.
+3. 放置到onEnterTransitionDidFinish函数中：
+  该函数是在进入层而且过渡动画结束时调用，代码放到这里不用考虑前面场景是否有调用背景音乐停止语句，而且也不会先听到声音，后出现界面现象。
+
+综上所述，能否成功播放背景音乐，前面场景是否有调用背景音乐停止语句有关，也与当前场景中播放代码在哪个函数里有关。如果前面场景没有调用背景音乐停止语句，问题也就简单了，我们可以将播放代码放置到以上任何一处，但是如果前面场景调用了背景音音乐停止语句，onEnterTransitionDidFinish函数播放背景音乐会更好一些。
+#### 11.2.3 停止播放背景音乐
+关于停止背景音乐播放，同样可以将停止播放代码如```SimpleAudioEngine::getInstance()->stopBackgroundMusic("sound/Jazz.mp3");```放置到三个位置：
+1. onExit函数
+2. onExitTransitionDidStart函数
+3. cleanup函数：
+  这个函数是在层对象清除时调用的，在此处停止背景音乐播放是比较好的选择。但是如果采用replaceScene函数实现从HelloWorld场景进入Setting场景情况会有些不同，这种情况下```Setting::onEnterTransitionDidFinish()```函数调用完成后会调用```HelloWorld::cleanup()```函数，因此也会导致播放背景音乐异常。
+
+事实上，在场景过渡过程中我们不停止播放背景音乐也是一个很好地解决方案，当在下一个场景播放新的背景音乐后，前一个场景的背景音乐播放自然就会停止，因为背景音乐不能同时播放多个。
+
+#### 11.2.4 背景音乐播放暂停与继续
+背景音乐播放暂停与继续很少使用，背景音乐播放暂停与继续示例代码如下：
+```
+SimpleAudioEngine::getInstance()->pauseBackgroundMusic();
+SimpleAudioEngine::getInstance()->resumeBackgroundMusic();
+```
+它们的调用一般情况下是在游戏退到后台时调用暂停函数```pauseBackgroundMusic()```，然后在回到前台时调用继续函数```resumeBackgroundMusic()```。这些代码应该放在游戏生命周期函数中，代码如下：
+```
+void AppDelegate::applicationDidEnterBackground(){
+  Director::getInstance()->stopAnimation();
+  SimpleAudioEngine::getInstance()->pauseBackgroundMusic();
+}
+void AppDelegate::applicationWillEnterForeground(){
+  Director::getInstance()->startAnimation();
+  SimpleAudioEngine::getInstance()->resumeBackgroundMusic();
+}
+```
+函数```applicationDidEnterBackground()```是在游戏进入到后台时回调的函数，在该函数中往往需要暂停所有的背景音乐播放。而在游戏回到前台时回调```applicationWillEnterForeground()```，在该函数中往往需要继续播放背景音乐。
+---
+
+---
