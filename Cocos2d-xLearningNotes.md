@@ -1021,6 +1021,101 @@ void AppDelegate::applicationWillEnterForeground(){
 }
 ```
 函数```applicationDidEnterBackground()```是在游戏进入到后台时回调的函数，在该函数中往往需要暂停所有的背景音乐播放。而在游戏回到前台时回调```applicationWillEnterForeground()```，在该函数中往往需要继续播放背景音乐。
+
+---
+### 第十二章 粒子系统
+---
+#### 12.2 粒子系统基本概念
+“粒子系统”是模拟自然界中的一些粒子的物理运动的效果。如烟雾、下雨、下雪、火、爆炸等。单个或几个粒子无法体现出粒子运动规律性，必须有大量的粒子才体现运行的规律。而且大量的粒子不断消失，又有大量的粒子不断产生。微观上，粒子运动是随机的；而宏观上粒子是有规律的，它们符合物理学中的“测不准原理”。
+
+> 粒子系统暂时先不记了 ┏ (゜ω゜)=☞就这么决定了
+
+---
+### 第十三章 瓦片地图
 ---
 
+啊....
+啊啊啊...
+
+总之用Tiled地图编辑器就好```_(:з」∠)_```
+
+---
+### 第十四章 物理引擎
+---
+#### 14.1 使用物理引擎
+物理引擎能够模仿真实世界物理运动规律，使得精灵做出自由落体、抛物线运动、互相碰撞、反弹等效果。
+使用物理引擎还可以进行精准的碰撞检测。碰撞检测在不使用物理引擎时，往往只是将碰撞的精灵抽象为矩形、圆形等规则的几何图形，这样算法比较简单，但是碰撞的真实效果比较差，而且自己编写时往往算法没有经过优化，性能也不是很好。物理引擎是经过优化的，所以还是建议使用已有的成熟的物理引擎。
+在Cocos2d-x 3.x之后对Chipmunk引擎进行了封装，拥有了一套自己的物理引擎，它能够与Cocos2d-x结合更加紧密，也不用我们关系物理引擎的技术细节问题。
+##### 14.1.1 物理引擎核心概念
+核心概念主要有：
+- 世界（World）：游戏中的物理世界。
+- 物体（Body）：构成物理世界的基础，具有位置、旋转角度等的特性，它上面的人和粮店之间的距离都是完全不变的，他们就像钻石那样坚硬，也可以称之为刚体（rigid body）。
+- 形状（Shape）：物体的形状。一个依附于物体的二维碰撞几何结构，具有摩擦和弹性等材料属性。由于物体被抽象成刚体，忽略了形状。但是物体间的摩擦和碰撞是与形状有关的，这时候需要将形状依附于物体上。
+- 接触点（Contact）管理检测碰撞。
+- 关节（Joint）：把两个或多个物体固定到一起的约束。
+如果将物体比作人的灵魂，那么形状就是人的躯体，是内容与形式的关系。我们创建一个物体的时候，他是没有形状的。然后根据形状附着于物体上，这时候物体就会受到摩擦力、弹力等影响，碰撞检测也是与形状关系的，一物体也可以附着于多个形状。
+##### 14.1.2 物理引擎与精灵关系
+物理引擎本身不包括精灵，它与精灵关系之间是相互独立的，精灵不会自动的跟着物理引擎中的物体做物理运动，通常我们需要编写代码将物体与精灵连接起来，同步它们的状态。
+有些游戏引擎对精灵进行了封装，使他们能够与物理引擎中的物体同步，不需要自己编写代码实现同步，Cocos2d-x 3.x中的Sprite类就实现了这个目的，再配合其他的一些封装类，使得我们在Cocos2d-x中使用物理引擎，根本不用关心它们的细节问题。
+如果游戏引擎没进行这种封装，我们直接实现Box2D引擎和Chipmunk引擎，就需要将物体与精灵的状态同步放到游戏循环中。
+#### 14.2 Cocos2d-x 3.x 中物理引擎封装
+##### 14.2.1 Cocos2d-x 3.x 物理引擎API
+在Cocos2d-x 3.x中物理世界被融入游戏引擎的场景中，我们可以指定这个场景是否使用物理引擎。为此创建类Scene增加如下函数：
+```
+static Scene* createWithPhysics();//创建场景对象
+bool initWithPhysics();//初始化具有物理引擎场景对象
+void addChildToPhysicsWorld(Node* node);//增加节点对象到物理世界
+PhysicsWorld* getPhysicsWorld();//获得物理世界对象
+```
+Cocos2d-x 3.x在节点类Node中增加了physicsBody属性，我们可以将物理引擎中的物体添加到Node对象中。
+此外，3.x中为物理引擎增加了很多类，主要如下：
+- PhysicsWorld类：封装物理引擎世界。
+- PhysicsBody类：封装物理引擎物体。
+- PhysicsShape类：封装物理引擎形状。
+- PhysicsContact类：封装物理引擎碰撞类。
+- EventListenerPhysicsContact类：碰撞检测监听类。
+- PhysicsJoint类：封装物理引擎关节。
+其中需要重点介绍的有：
+1. PhysicsShape类：
+  形状类PhysicsShape是一个抽象类，他有很多子类，如：
+  - PhysicsShapeCircle：圆圈
+  - PhysicsShapeBox：矩形盒子
+  - PhysicsShapePolygon：多边形
+  - PhysicsShapeEdgeSegment：有边的线段
+  - PhysicsShapeEdgeBox：有边的矩形盒子
+  - PhysicsShapeEdgePolygon：有边的多边形
+  - PhysicsShapeEdgeChain：有边的链形
+2. EventListenerPhysicsContact类：
+  EventListenerPhysicsContact中碰撞检测响应属性：
+  ```
+  std::function<bool(PhysicsContact &contact)> onContactBegin;
+  //两个物体开始接触时会响应，但只调用一次。
+  //返回false情况下后面两个属性(onContactPreSolve和onContactPostSolve)
+  //所指定的函数，不调用
+  std::function<bool(PhysicsContact & contact, PhysicsContactPreSolve &solve)>
+  onContactPreSolve;
+  //持续接触时响应，他会被多次调用。返回false情况下后面的onContactPostSolve
+  //属性所指定的函数，不调用
+  std::function<void(PhysicsContact &contact, const PhysicsContactPostSolve &solve)> onContactPostSolve;
+  //持续接触时响应，调用完PreSolve后调用。
+  std::function<void(PhysicsContact &contact)> onContactSeparate;
+  //分离时响应，但只调用一次。
+  ```
+3. PhysicsJoint类
+  关节类PhysicsJoint是一个抽象类。随着版本变化，其子类会越来越多，以PhysicsJointDistance类为例，其他关节类的创建和使用都与其相似，只是约束的形式不同。
+  PhysicsJointDistance类是距离关节类，它是最简单的关节之一。两个物体上面各自有一点，两点之间的距离必须固定不变。
+  创建PhysicsJointDistance的静态函数定义如下：
+  ```
+  static PhysicsJointDistance* construct{
+    PhysicsBody* a,
+    PhysicsBody* b,
+    const Vec2 &anchr1;
+    const Vec2 &anchr2;
+  }
+  ```
+  其中参数a、b是两个相互约束的物体，anchr1是链接a物体的锚点，anchr2是b物体的锚点。
+  注意，物理引擎关节中的锚点与Node节点中的锚点anchorPoint不同。Node的锚点是相对于未知的比例，物理引擎关节中的锚点是绝对的坐标点。
+
+---
+### 第十五章 内存管理
 ---
