@@ -289,15 +289,17 @@ local s = 0
   end
 return s
 end
---
-print(add(3, 4, 10, 25, 12))    -->54</pre>
+
+--print(add(3, 4, 10, 25, 12))    -->54
+</pre>
+
 
 <pre>local a, b = ...
 --用第一个和第二个变长参数来初始化这两个局部变量</pre>
 
 <pre>--多值恒定式
-function id(...) return ... end
---
+function id(...) return ... end</pre>
+<pre>
 function foo1(...)
 print("calling foo:", ...)
   return foo(...)
@@ -391,16 +393,16 @@ _Window(options.title,
   * `table.sort()`排序操作：
     1. <a src="http://www.jb51.net/article/55718.htm">Lua中对table排序实例</a>
     2. <a src="http://www.jianshu.com/p/2f5bdc773f6d">Lua table.sort()</a>
+
 <pre>function derivative(f, delta)
   delta = delta or 1e-4
   return function(x)
                 return(f(x + delta) - f(x)) / delta
                 end
 end
---
+//////////////////////////////////////////////////
 c = derivative(math.sin)
 print(math.cos(10), c(10))
---> -0.83907152907645   -0.83904432662041</p  re>
+--> -0.83907152907645   -0.83904432662041</pre>
 
----
 ### 协同程序
